@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZeldaTimelineGeneratorUtility", "ZeldaTimelineGeneratorUtility\ZeldaTimelineGeneratorUtility.csproj", "{A192B3C8-5D3E-4FBD-92FB-185B7E3F5F5D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TreeGenerator", "TreeGenerator\TreeGenerator\TreeGenerator.csproj", "{32E6B1C5-E785-4AB3-9C3E-E5B26E16EA79}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A192B3C8-5D3E-4FBD-92FB-185B7E3F5F5D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A192B3C8-5D3E-4FBD-92FB-185B7E3F5F5D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A192B3C8-5D3E-4FBD-92FB-185B7E3F5F5D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A192B3C8-5D3E-4FBD-92FB-185B7E3F5F5D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{32E6B1C5-E785-4AB3-9C3E-E5B26E16EA79}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{32E6B1C5-E785-4AB3-9C3E-E5B26E16EA79}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{32E6B1C5-E785-4AB3-9C3E-E5B26E16EA79}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{32E6B1C5-E785-4AB3-9C3E-E5B26E16EA79}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

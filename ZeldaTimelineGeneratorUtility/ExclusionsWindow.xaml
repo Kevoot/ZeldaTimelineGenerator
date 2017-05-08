@@ -1,0 +1,29 @@
+﻿<Window x:Class="ZeldaTimelineGeneratorUtility.ExclusionsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ZeldaTimelineGeneratorUtility"
+        mc:Ignorable="d"
+        Title="Exclusions Window" Height="442.488" Width="715.036"
+        ResizeMode="NoResize">
+    <Grid DataContext="{Binding SelectedGame, Mode=TwoWay}">
+        <DataGrid Name="dataGrid" AutoGenerateColumns="False" SelectionMode="Single" CanUserDeleteRows="True" SelectionUnit="FullRow" ItemsSource="{Binding SelectedGame, UpdateSourceTrigger=PropertyChanged}"
+                   HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Height="388" RenderTransformOrigin="0.5,0.5" Width="596" AddingNewItem="dataGrid_AddingNewItem">
+            <DataGrid.CellStyle>
+                <Style TargetType="DataGridCell">
+                    <Setter Property="BorderThickness" Value="0"/>
+                </Style>
+            </DataGrid.CellStyle>
+
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Reason" IsReadOnly="False" Width="160" Binding="{Binding Reason, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                <DataGridComboBoxColumn Header="SourceGame" IsReadOnly="False" Width="100" ItemsSource="{Binding Source={local:EnumBindingSource {x:Type local:GameEnum}}}" SelectedItemBinding="{Binding SourceGame, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                <DataGridComboBoxColumn Header="Order" IsReadOnly="False" Width="100" ItemsSource="{Binding Source={local:EnumBindingSource {x:Type local:ExclusionOrder}}}" SelectedItemBinding="{Binding Order, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                <DataGridComboBoxColumn Header="TargetGame" IsReadOnly="False" Width="100" ItemsSource="{Binding Source={local:EnumBindingSource {x:Type local:GameEnum}}}" SelectedItemBinding="{Binding TargetGame, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                <DataGridCheckBoxColumn Header="Consider in Graph?" IsReadOnly="False" Width="100" Binding="{Binding Enabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+    </Grid>
+</Window>
