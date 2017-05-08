@@ -40,6 +40,12 @@ namespace ZeldaTimelineGeneratorUtility
             catch(JsonReaderException)
             {
                 MessageBox.Show("Could not read LocalData.txt");
+                GameObservableCollection = new ObservableCollection<Game>();
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show("Couldn't load local JSON file");
+                GameObservableCollection = new ObservableCollection<Game>();
             }
 
             dataGrid.ItemsSource = GameObservableCollection;
