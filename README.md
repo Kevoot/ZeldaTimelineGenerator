@@ -6,6 +6,11 @@ and user specified attributes to create the closest representation of the data i
 Select the games you want to include in the initial menu from the drop downs. 
 For each game, you can define both Direct Connections and Exclusions.
 
+A copy of my LocalData.txt has been included in the root of the directory. The program reads output
+JSON files to save locally created data. If you would like to use the one provided (which outputs
+the Hyrule Historia timeline), simply drop the LocalData.txt file into the same folder as the 
+executable.
+
 # Direct Connections
 There are (at the moment) used to define the connection between games. Intended use:
 Creating a connection for a game implies that game is the parents, and the specified game
@@ -22,5 +27,8 @@ by each data set.
 For now, it only uses direct connections specified by the user, which require no background
 logic beyond building the tree data structure. The next step is to use the exclusion
 attributes and the weight of that value to generate separate graphs.
+
+Beyond that, I'd like to make the enum values importable, so it can be used in a general
+sense for whatever movie/TV show/Game/Book that you would like to see "what-ifs?" for.
 
 Also I should probably make the output prettier, and may end up replacing the graph lib.
