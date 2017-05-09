@@ -31,7 +31,7 @@
 
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Game ID" IsReadOnly="True" Width="80" Binding="{Binding GameId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                <DataGridComboBoxColumn Header="Title" IsReadOnly="False" Width="160" ItemsSource="{Binding Source={local:EnumBindingSource {x:Type local:GameEnum}}}" SelectedItemBinding="{Binding SourceGame, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                <DataGridComboBoxColumn Header="Title" IsReadOnly="False" Width="160" ItemsSource="{Binding Source={local:EnumBindingSource {x:Type local:GameEnum}}}" SelectedItemBinding="{Binding GameTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                 <DataGridTextColumn Header="# of Direct Connections" IsReadOnly="True" Width="100" Binding="{Binding DirectConnections.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
                 <DataGridTemplateColumn>
                     <DataGridTemplateColumn.CellTemplate>

@@ -17,9 +17,12 @@ namespace ZeldaTimelineGeneratorUtility
         public ZeldaTreeNode RootNode = null;
         public List<ZeldaTreeNode> LeafNodes = new List<ZeldaTreeNode>();
         public List<ZeldaTreeNode> OrphanNodes = new List<ZeldaTreeNode>();
-        List<ZeldaTreeNode> NodeCollection = new List<ZeldaTreeNode>();
-        public List<Link> Links = new List<Link>();
-        
+        public List<ZeldaTreeNode> NodeCollection = new List<ZeldaTreeNode>();
+        public List<Link> ConnectionLinks = new List<Link>();
+        public List<TreeData.TreeDataTableDataTable> CompletedTables = new List<TreeData.TreeDataTableDataTable>();
+        public TreeData.TreeDataTableDataTable ZeldaDataTableTree = new TreeData.TreeDataTableDataTable();
+
+        public int numTablesCreated = 0;
 
         public ZeldaTree()
         {
@@ -34,11 +37,80 @@ namespace ZeldaTimelineGeneratorUtility
         public ZeldaTree(ObservableCollection<Game> games)
         {
             GenerateCollectionFromGames(games.ToList());
+            AddReferencedGames();
             RemoveOrphanNodes();
             SetRootNode();
             SetLeafNodes();          
             GenerateTreeFromCollection();
             GenerateGraphImage();
+        }
+
+        private void AddReferencedGames()
+        {
+            foreach (GameEnum gameTitle in Enum.GetValues(typeof(GameEnum)))
+            {
+                if(gameTitle == GameEnum.NoData)
+                {
+                    continue;
+                }
+                var game = new Game(gameTitle);
+                if (NodeCollection.Where(outerNode => outerNode.SourceGame.DirectConnections
+                .Any(innerNode => innerNode.TargetGame == gameTitle)).Count() > 0)
+                {
+                    var references = NodeCollection.Where(outerNode => outerNode.SourceGame.DirectConnections
+                    .Any(innerNode => innerNode.TargetGame == gameTitle));
+                    CreateExclusionsFromReferences(game, references);
+                }
+                if(NodeCollection.Where(outerNode => outerNode.SourceGame.Exclusions
+                .Any(innerNode => innerNode.SourceGame == gameTitle)).Count() > 0)
+                {
+                    var references = NodeCollection.Where(outerNode => outerNode.SourceGame.Exclusions
+                    .Any(innerNode => innerNode.SourceGame == gameTitle));
+                    CreateExclusionsFromReferences(game, references);
+                }
+                if(NodeCollection.Where(outerNode => outerNode.SourceGame.Exclusions
+                .Any(innerNode => innerNode.TargetGame == gameTitle)).Count() > 0)
+                {
+                     var references = NodeCollection.Where(outerNode => outerNode.SourceGame.Exclusions
+                    .Any(innerNode => innerNode.TargetGame == gameTitle));
+                    CreateExclusionsFromReferences(game, references);
+                }
+                if(game.Exclusions.Count > 0 && !NodeCollection.Any(node => node.GameTitle == gameTitle))
+                {
+                    game.GameId = 0;
+                    NodeCollection.Add(new ZeldaTreeNode(game));
+                }
+            }
+        }
+
+        private static void CreateExclusionsFromReferences(Game game, IEnumerable<ZeldaTreeNode> references)
+        {
+            foreach (var reference in references)
+            {
+                foreach (var ex in reference.SourceGame.Exclusions)
+                {
+                    if (ex.Order == ExclusionOrder.CantBeAfter)
+                    {
+                        game.Exclusions.Add(
+                            new Exclusion(ex.TargetGame, ExclusionOrder.CantBeBefore, ex.SourceGame, "From parent"));
+                    }
+                    else if (ex.Order == ExclusionOrder.CantBeBefore)
+                    {
+                        game.Exclusions.Add(
+                            new Exclusion(ex.TargetGame, ExclusionOrder.CantBeAfter, ex.SourceGame, "From parent"));
+                    }
+                    else if (ex.Order == ExclusionOrder.MustBeAfter)
+                    {
+                        game.Exclusions.Add(
+                            new Exclusion(ex.TargetGame, ExclusionOrder.MustBeBefore, ex.SourceGame, "From parent"));
+                    }
+                    else if (ex.Order == ExclusionOrder.MustBeBefore)
+                    {
+                        game.Exclusions.Add(
+                            new Exclusion(ex.TargetGame, ExclusionOrder.MustBeAfter, ex.SourceGame, "From parent"));
+                    }
+                }
+            }
         }
 
         private void RemoveOrphanNodes()
@@ -330,6 +402,118 @@ namespace ZeldaTimelineGeneratorUtility
 
         private void GenerateTreeFromCollection()
         {
+            AddDirectConnectionsToTree();
+            foreach(var node in NodeCollection)
+            {
+                node.Visited = false;
+            }
+            AddExclusionsToNodes(RootNode);
+            AssignChildren(RootNode.Children);
+            AssignChildren(NodeCollection.Where(node => !node.Visited).ToList());
+        }
+
+        private void AddExclusionsToNodes(ZeldaTreeNode zNode)
+        {
+            if(zNode.Visited)
+            {
+                return;
+            }
+            else
+            {
+                zNode.Visited = true;
+            }
+            foreach (var ex in zNode.SourceGame.Exclusions)
+            {
+                // Exclusion dictates node must be before target
+                if(ex.SourceGame == zNode.GameTitle && (ex.Order == ExclusionOrder.CantBeAfter || ex.Order == ExclusionOrder.MustBeBefore))
+                {
+                    var connectedNode = NodeCollection.FirstOrDefault(innerNode => innerNode.SourceGame.GameTitle == ex.TargetGame);
+                    if(connectedNode != null)
+                    {
+                        if (!zNode.nodesAfterByExclusions.Contains(new KeyValuePair<ZeldaTreeNode, Exclusion>(connectedNode, ex)))
+                        {
+                            NodeCollection.FirstOrDefault(node => node.GameTitle == zNode.GameTitle)
+                            .nodesAfterByExclusions
+                            .Add(new KeyValuePair<ZeldaTreeNode, Exclusion>(connectedNode, ex));
+                        }
+                        if (!connectedNode.nodesBeforeByExclusions.Contains(new KeyValuePair<ZeldaTreeNode, Exclusion>(zNode, ex)))
+                        {
+                            connectedNode.nodesBeforeByExclusions.Add(new KeyValuePair<ZeldaTreeNode, Exclusion>(zNode, ex));
+                        }
+                    }
+                }
+                else if(ex.SourceGame == zNode.GameTitle && (ex.Order == ExclusionOrder.CantBeBefore || ex.Order == ExclusionOrder.MustBeAfter))
+                {
+                    var connectedNode = NodeCollection.FirstOrDefault(innerNode => innerNode.SourceGame.GameTitle == ex.TargetGame);
+                    if (connectedNode != null)
+                    {
+                        if (!zNode.nodesBeforeByExclusions.Contains(new KeyValuePair<ZeldaTreeNode, Exclusion>(connectedNode, ex)))
+                        {
+                            NodeCollection.FirstOrDefault(node => node.GameTitle == zNode.GameTitle)
+                            .nodesBeforeByExclusions
+                            .Add(new KeyValuePair<ZeldaTreeNode, Exclusion>(connectedNode, ex));
+                        }
+                        if (!connectedNode.nodesAfterByExclusions.Contains(new KeyValuePair<ZeldaTreeNode, Exclusion>(zNode, ex)))
+                        {
+                            connectedNode.nodesAfterByExclusions.Add(new KeyValuePair<ZeldaTreeNode, Exclusion>(zNode, ex));
+                        }
+                    }
+                }
+                else if (ex.TargetGame == zNode.GameTitle && (ex.Order == ExclusionOrder.CantBeAfter || ex.Order == ExclusionOrder.MustBeBefore))
+                {
+                    var connectedNode = NodeCollection.FirstOrDefault(innerNode => innerNode.SourceGame.GameTitle == ex.SourceGame);
+                    if (connectedNode != null)
+                    {
+                        if (!zNode.nodesBeforeByExclusions.Contains(new KeyValuePair<ZeldaTreeNode, Exclusion>(connectedNode, ex)))
+                        {
+                            NodeCollection.FirstOrDefault(node => node.GameTitle == zNode.GameTitle)
+                            .nodesBeforeByExclusions
+                            .Add(new KeyValuePair<ZeldaTreeNode, Exclusion>(connectedNode, ex));
+                        }
+                        if (!connectedNode.nodesAfterByExclusions.Contains(new KeyValuePair<ZeldaTreeNode, Exclusion>(zNode, ex)))
+                        {
+                            connectedNode.nodesAfterByExclusions.Add(new KeyValuePair<ZeldaTreeNode, Exclusion>(zNode, ex));
+                        }
+                    }
+                }
+                else if (ex.TargetGame == zNode.GameTitle && (ex.Order == ExclusionOrder.CantBeBefore || ex.Order == ExclusionOrder.MustBeAfter))
+                {
+                    var connectedNode = NodeCollection.FirstOrDefault(innerNode => innerNode.SourceGame.GameTitle == ex.SourceGame);
+                    if (connectedNode != null)
+                    {
+                        if (!zNode.nodesAfterByExclusions.Contains(new KeyValuePair<ZeldaTreeNode, Exclusion>(connectedNode, ex)))
+                        {
+                            NodeCollection.FirstOrDefault(node => node.GameTitle == zNode.GameTitle)
+                            .nodesAfterByExclusions
+                            .Add(new KeyValuePair<ZeldaTreeNode, Exclusion>(connectedNode, ex));
+                        }
+                        if (!connectedNode.nodesBeforeByExclusions.Contains(new KeyValuePair<ZeldaTreeNode, Exclusion>(zNode, ex)))
+                        {
+                            connectedNode.nodesBeforeByExclusions.Add(new KeyValuePair<ZeldaTreeNode, Exclusion>(zNode, ex));
+                        }
+                    }
+                }
+            }
+            foreach(var node in zNode.nodesAfterByExclusions.ToList())
+            {
+                AddExclusionsToNodes(node.Key);
+            }
+            foreach(var node in zNode.nodesBeforeByExclusions.ToList())
+            {
+                AddExclusionsToNodes(node.Key);
+            }
+            foreach (var node in zNode.Children.ToList())
+            {
+                AddExclusionsToNodes(node);
+            }
+            if(zNode.Parent != null)
+            {
+                AddExclusionsToNodes(zNode.Parent);
+            }
+        }
+
+        private void AddDirectConnectionsToTree()
+        {
             List<ZeldaTreeNode> pendingRootAdditions = new List<ZeldaTreeNode>();
             // Now that we know the root, we can begin setting up the data structure
             // Which the graphics will mirror
@@ -337,25 +521,27 @@ namespace ZeldaTimelineGeneratorUtility
             foreach (var child in RootNode.SourceGame.DirectConnections)
             {
                 var pendingChild = (NodeCollection.FirstOrDefault(node => node.GameTitle == child.TargetGame));
-                if(pendingChild != null)
+                if (pendingChild != null)
                 {
-                    if (CheckForDuplicateLinkAndAdd(new Link(RootNode.GameTitle, pendingChild.GameTitle)))
+                    if (CheckForDuplicateLinkAndAdd(new Link(RootNode.GameTitle, pendingChild.GameTitle, true)))
                     {
                         pendingChild.Parent = RootNode;
                         RootNode.Children.Add(pendingChild);
                     }
                 }
             }
-            AssignChildren(RootNode.Children);
-            // Add all direct Connections
+            foreach (var child in RootNode.Children)
+            {
+                ConnectionLinks.Add(new Link(RootNode.GameTitle, child.GameTitle, true));
+            }
         }
 
         private bool CheckForDuplicateLinkAndAdd(Link resultLink)
         {
-            if (!Links.Contains(new Link(resultLink.ParentLink, resultLink.ChildLink))
-                && !Links.Contains(new Link(resultLink.ChildLink, resultLink.ParentLink)))
+            if (!ConnectionLinks.Contains(new Link(resultLink.ParentLink, resultLink.ChildLink, resultLink.Type))
+                && !ConnectionLinks.Contains(new Link(resultLink.ChildLink, resultLink.ParentLink, resultLink.Type)))
             {
-                Links.Add(resultLink);
+                ConnectionLinks.Add(resultLink);
                 return true;
             }
             else return false;
@@ -363,64 +549,124 @@ namespace ZeldaTimelineGeneratorUtility
 
         private void AssignChildren(List<ZeldaTreeNode> nodes)
         {
-            var pendingChildren = new List<ZeldaTreeNode>();
-            if(nodes.All(node => node.SourceGame.DirectConnections.Count() == 0))
+            if(nodes.Count < 1)
             {
                 return;
             }
+            var pendingChildren = new List<ZeldaTreeNode>();
+            /*if(nodes.All(node => node.SourceGame.DirectConnections.Count() == 0))
+            {
+                return;
+            }*/
             foreach(var node in nodes)
             {
-                if (node.SourceGame.DirectConnections.Count() == 0) continue;
-                else
+                //if (node.SourceGame.DirectConnections.Count() == 0) continue;
+                //else
+                //{
+                foreach (var child in node.SourceGame.DirectConnections)
                 {
-                    foreach (var child in node.SourceGame.DirectConnections)
+                    var pendingChild = NodeCollection.FirstOrDefault(innerNode => innerNode.GameTitle == child.TargetGame);
+                    if(pendingChild != null)
                     {
-                        var pendingChild = NodeCollection.FirstOrDefault(innerNode => innerNode.GameTitle == child.TargetGame);
-                        if(pendingChild != null)
+                        if(CheckForDuplicateLinkAndAdd(new Link(node.SourceGame.GameTitle, pendingChild.GameTitle, true)))
                         {
-                            if(CheckForDuplicateLinkAndAdd(new Link(node.SourceGame.SourceGame, pendingChild.GameTitle)))
+                            pendingChild.Parent = node;
+                            node.Children.Add(pendingChild);
+                            pendingChildren.Add(pendingChild);
+                        }
+                        else
+                        {
+                            continue;
+                        }
+                    }
+                }
+                //}
+                // Currently overrides Connections, next step is to add rating selection
+                foreach (var child in node.SourceGame.Exclusions)
+                {
+                    
+                    var pendingChild = NodeCollection.FirstOrDefault(innerNode => (innerNode.GameTitle == child.TargetGame 
+                                        && innerNode.GameTitle != node.GameTitle) || (innerNode.GameTitle == child.SourceGame
+                                        && innerNode.GameTitle != node.GameTitle));
+                    if (pendingChild != null)
+                    {
+                        if (!ConnectionLinks.Contains(new Link(child.SourceGame, child.TargetGame, false)))
+                        {
+                            ConnectionLinks.Add(new Link(child.SourceGame, child.TargetGame, false));
+                            if((child.SourceGame == pendingChild.GameTitle
+                                && (child.Order == ExclusionOrder.CantBeAfter || child.Order == ExclusionOrder.MustBeBefore)) ||
+                                (child.TargetGame == pendingChild.GameTitle
+                                && (child.Order == ExclusionOrder.CantBeBefore || child.Order == ExclusionOrder.MustBeAfter)))
                             {
-                                pendingChild.Parent = node;
-                                node.Children.Add(pendingChild);
-                                pendingChildren.Add(pendingChild);
+                                pendingChild.Children.Add(node);
+                                node.Parent = pendingChild;
+                                if(pendingChild.Visited == false)
+                                {
+                                    pendingChild.Visited = true;
+                                    pendingChildren.Add(pendingChild);
+                                }
                             }
                             else
                             {
-                                continue;
+                                node.Children.Add(pendingChild);
+                                pendingChild.Parent = node;
+                                if (pendingChild.Visited == false)
+                                {
+                                    pendingChild.Visited = true;
+                                    pendingChildren.Add(pendingChild);
+                                }
                             }
                         }
                     }
                 }
             }
-            AssignChildren(pendingChildren);
+            if(pendingChildren.Count > 0)
+            {
+                AssignChildren(pendingChildren);
+            }
         }
 
         private void GenerateGraphImage()
         {
-            TreeData.TreeDataTableDataTable ZeldaDataTableTree = new TreeData.TreeDataTableDataTable();
-            foreach(var node in NodeCollection)
+            GenerateConnections();
+            GenerateExclusions();
+            // Check to see if table is already a created one
+            if(!CompletedTables.Contains(ZeldaDataTableTree))
+            {
+                numTablesCreated += 1;
+                var ZeldaTree = new TreeBuilder(ZeldaDataTableTree);
+                ZeldaTree.BoxHeight = ZeldaTree.BoxHeight * 2;
+                ZeldaTree.BoxWidth = ZeldaTree.BoxWidth * 2;
+                ZeldaTree.FontSize = 4;
+                var ZeldaTreeImage = Image.FromStream(ZeldaTree.GenerateTree(RootNode.GameTitle.ToString(), System.Drawing.Imaging.ImageFormat.Bmp));
+                ZeldaTreeImage.Save("Graph" + numTablesCreated + ".bmp");
+            }
+        }
+
+        private void GenerateExclusions()
+        {
+            // To be added
+        }
+
+        private void GenerateConnections()
+        {
+            foreach (var node in NodeCollection)
             {
                 var sbDetails = new StringBuilder();
                 sbDetails.Append("*" + node.GameTitle + "*\n");
-                foreach(var reason in node.Reasons)
+                foreach (var reason in node.Reasons)
                 {
                     sbDetails.Append("+" + reason.Reason + "\n+Strength of Evidence: " + reason.Rating + "\n+Category: " + reason.Category);
                 }
                 var sbComments = new StringBuilder();
-                foreach(var reason in node.Reasons)
+                foreach (var reason in node.Reasons)
                 {
                     sbComments.Append("Comment: " + reason.Comment + "\n");
                 }
-                ZeldaDataTableTree.AddTreeDataTableRow(node.GameTitle.ToString(), 
+                ZeldaDataTableTree.AddTreeDataTableRow(node.GameTitle.ToString(),
                     ((node.Parent == null) ? "" : node.Parent.GameTitle.ToString()),
                     sbDetails.ToString(), sbComments.ToString());
             }
-            var ZeldaTree = new TreeBuilder(ZeldaDataTableTree);
-            ZeldaTree.BoxHeight = ZeldaTree.BoxHeight * 2;
-            ZeldaTree.BoxWidth = ZeldaTree.BoxWidth * 2;
-            ZeldaTree.FontSize = 4;
-            var ZeldaTreeImage = Image.FromStream(ZeldaTree.GenerateTree(RootNode.GameTitle.ToString(), System.Drawing.Imaging.ImageFormat.Bmp));
-            ZeldaTreeImage.Save("Graph.bmp");
         }
 
         private void GenerateCollectionFromGames(List<Game> games)
@@ -431,105 +677,6 @@ namespace ZeldaTimelineGeneratorUtility
                 NodeCollection.Add(new ZeldaTreeNode(game));
             }
             return;
-        }
-    }
-
-    public class ZeldaTreeNode
-    {
-        private bool rootNode;
-        private bool leafNode;
-        private ZeldaTreeNode parent;
-        private List<ZeldaTreeNode> children;
-
-        public GameEnum GameTitle;
-        public Game SourceGame;
-
-        public List<TreeDirectConnectionString> Reasons;
-
-        public bool IsRootNode
-        {
-            get
-            {
-                return rootNode;
-            }
-            set
-            {
-                rootNode = value;
-            }
-        }
-
-        public bool LeafNode
-        {
-            get
-            {
-                return leafNode;
-            }
-            set
-            {
-                leafNode = value;
-            }
-        }
-
-        public ZeldaTreeNode Parent
-        {
-            get
-            {
-                return parent;
-            }
-            set
-            {
-                parent = value;
-            }
-        }
-
-        public List<ZeldaTreeNode> Children
-        {
-            get
-            {
-                return children;
-            }
-            set
-            {
-                children = value;
-            }
-        }
-
-        public ZeldaTreeNode()
-        {
-            IsRootNode = false;
-            LeafNode = false;
-            Parent = null;
-            Children = new List<ZeldaTreeNode>();
-            Reasons = new List<TreeDirectConnectionString>();
-            SourceGame = null;
-            GameTitle = GameEnum.NoData;
-        }
-
-        public ZeldaTreeNode(Game game)
-        {
-            IsRootNode = false;
-            LeafNode = false;
-            Parent = null;
-            Children = new List<ZeldaTreeNode>();
-            Reasons = new List<TreeDirectConnectionString>();
-            foreach (var reason in game.DirectConnections)
-            {
-                Reasons.Add(new TreeDirectConnectionString(reason));
-            }
-            
-            SourceGame = game;
-            GameTitle = game.SourceGame;
-        }
-
-        public ZeldaTreeNode(Game game, ZeldaTreeNode parent)
-        {
-            IsRootNode = false;
-            LeafNode = false;
-            Parent = parent;
-            Children = new List<ZeldaTreeNode>();
-            Reasons = new List<TreeDirectConnectionString>();
-            SourceGame = game;
-            GameTitle = game.SourceGame;
         }
     }
 
@@ -562,11 +709,14 @@ namespace ZeldaTimelineGeneratorUtility
     public class Link
     {
         public GameEnum ParentLink, ChildLink;
+        // 0 = Exclusion, 1 = Direct Connection,
+        public bool Type;
 
-        public Link(GameEnum t1, GameEnum t2)
+        public Link(GameEnum t1, GameEnum t2, bool type)
         {
             ParentLink = t1;
             ChildLink = t2;
+            Type = type;
         }
     }
 }

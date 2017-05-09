@@ -50,7 +50,7 @@ namespace ZeldaTimelineGeneratorUtility
 
         private void dataGrid_AddingNewItem(object sender, AddingNewItemEventArgs e)
         {
-            e.NewItem = new Exclusion(SelectedGame.SourceGame);
+            e.NewItem = new Exclusion(SelectedGame.GameTitle);
         }
     }
 }

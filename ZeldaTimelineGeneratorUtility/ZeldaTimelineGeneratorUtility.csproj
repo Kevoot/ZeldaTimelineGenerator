@@ -64,6 +64,7 @@
       <DependentUpon>RootNodeChoser.xaml</DependentUpon>
     </Compile>
     <Compile Include="ZeldaTree.cs" />
+    <Compile Include="ZeldaTreeNode.cs" />
     <Page Include="ConnectionsWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

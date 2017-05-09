@@ -91,6 +91,15 @@ namespace ZeldaTimelineGeneratorUtility
             Enabled = true;
         }
 
+        public Exclusion(string reason)
+        {
+            Reason = reason;
+            SourceGame = GameEnum.NoData;
+            Order = ExclusionOrder.NoData;
+            TargetGame = GameEnum.NoData;
+            Enabled = true;
+        }
+
         public Exclusion(GameEnum source)
         {
             Reason = "<Reason>";
@@ -109,20 +118,20 @@ namespace ZeldaTimelineGeneratorUtility
             Enabled = true;
         }
 
-        public Exclusion(GameEnum source, GameEnum target, string r)
+        public Exclusion(GameEnum source, GameEnum target, string reason)
         {
-            Reason = r;
+            Reason = reason;
             SourceGame = source;
             Order = ExclusionOrder.NoData;
             TargetGame = target;
             Enabled = true;
         }
 
-        public Exclusion(GameEnum source, ExclusionOrder o, GameEnum target, string r)
+        public Exclusion(GameEnum source, ExclusionOrder order, GameEnum target, string reason)
         {
-            Reason = r;
+            Reason = reason;
             SourceGame = source;
-            Order = o;
+            Order = order;
             TargetGame = target;
             Enabled = true;
         }

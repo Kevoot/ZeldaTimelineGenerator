@@ -42,7 +42,7 @@ namespace ZeldaTimelineGeneratorUtility
             }
         }
 
-        public GameEnum SourceGame
+        public GameEnum GameTitle
         {
             get
             {
@@ -73,21 +73,29 @@ namespace ZeldaTimelineGeneratorUtility
         public Game()
         {
             GameId = 0;
-            SourceGame = GameEnum.NoData;
+            GameTitle = GameEnum.NoData;
+            Exclusions = new ObservableCollection<Exclusion>();
+            DirectConnections = new ObservableCollection<DirectConnection>();
+        }
+
+        public Game(GameEnum title)
+        {
+            GameId = 0;
+            GameTitle = title;
             Exclusions = new ObservableCollection<Exclusion>();
             DirectConnections = new ObservableCollection<DirectConnection>();
         }
 
         public Game(GameEnum sourceGame, ObservableCollection<DirectConnection> directConnections)
         {
-            SourceGame = sourceGame;
+            GameTitle = sourceGame;
             DirectConnections = directConnections;
             Exclusions = new ObservableCollection<Exclusion>();
         }
 
         public Game(GameEnum sourceGame, ObservableCollection<DirectConnection> directConnections, ObservableCollection<Exclusion> exclusions)
         {
-            SourceGame = sourceGame;
+            GameTitle = sourceGame;
             DirectConnections = directConnections;
             Exclusions = exclusions;
         }

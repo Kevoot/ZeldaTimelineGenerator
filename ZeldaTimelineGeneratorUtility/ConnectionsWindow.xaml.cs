@@ -80,7 +80,7 @@ namespace ZeldaTimelineGeneratorUtility
 
         private void dataGrid_AddingNewItem(object sender, AddingNewItemEventArgs e)
         {
-            e.NewItem = new DirectConnection(SelectedGame.GameId, SelectedGame.SourceGame);
+            e.NewItem = new DirectConnection(SelectedGame.GameId, SelectedGame.GameTitle);
         }
     }
 }

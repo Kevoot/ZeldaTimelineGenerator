@@ -264,15 +264,23 @@ namespace TreeGenerator
         {
             XmlNode childNode = null;
             //has children
-            foreach (TreeData.TreeDataTableRow  childRow in dtTree.Select(
-                string.Format("parentNodeID='{0}'", oNode.Attributes["nodeID"].InnerText)))
+            try
             {
-                //for each child node call this function again
-                childNode = GetXMLNode(childRow.nodeID, childRow.nodeDescription, childRow.nodeNote);
-                oNode.AppendChild(childNode);
-                BuildTree(childNode, y + 1);
+                foreach (TreeData.TreeDataTableRow childRow in dtTree.Select(
+                    string.Format("parentNodeID='{0}'", oNode.Attributes["nodeID"].InnerText)))
+                {
+                    //for each child node call this function again
+                    childNode = GetXMLNode(childRow.nodeID, childRow.nodeDescription, childRow.nodeNote);
+                    oNode.AppendChild(childNode);
+                    BuildTree(childNode, y + 1);
 
+                }
             }
+            catch(Exception ex)
+            {
+                throw ex;
+            }
+
             //build node data
             //after checking for nodes we can add the current node
             int StartX;
