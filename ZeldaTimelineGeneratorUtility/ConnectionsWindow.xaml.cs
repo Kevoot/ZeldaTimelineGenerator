@@ -110,6 +110,10 @@ namespace ZeldaTimelineGeneratorUtility
 
         private void saveButton_Click(object sender, RoutedEventArgs e)
         {
+            foreach(var connection in SelectedGame.DirectConnections)
+            {
+                connection.SourceGame = SelectedGame.GameTitle;
+            }
             Close();
         }
 

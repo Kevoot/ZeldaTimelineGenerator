@@ -101,7 +101,7 @@ namespace ZeldaTimelineGeneratorUtility
                 var directConnectionsWindow = new ConnectionsWindow(((Game)selectedGame));
                 directConnectionsWindow.ShowDialog();
                 dataGrid.ItemsSource = GameObservableCollection;
-                dataGrid.Items.Refresh();
+                // dataGrid.Items.Refresh();
             }
         }
 
