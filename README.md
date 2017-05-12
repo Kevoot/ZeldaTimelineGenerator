@@ -33,4 +33,4 @@ sense for whatever movie/TV show/Game/Book that you would like to see "what-ifs?
 
 Also I should probably make the output prettier, and may end up replacing the graph lib.
 
-![Graph Bitmap](ZeldaTimelineGeneratorUtility/bin/Debug/Graph.bmp "Output Bitmap")
+![Graph Bitmap](ZeldaTimelineGeneratorUtility/bin/Debug/Graph1.bmp "Output Bitmap")
