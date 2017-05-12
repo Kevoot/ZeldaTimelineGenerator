@@ -6,12 +6,11 @@ using System.Threading.Tasks;
 
 namespace ZeldaTimelineGeneratorUtility
 {
-    public class DirectConnection : INotifyPropertyChanged
+    public class DirectConnection : INotifyPropertyChanged, IDataErrorInfo
     {
         private int gameId;
         private string description;
         private int rating;
-        private string category;
         private string comment;
         private GameEnum sourceGame, targetGame;
 
@@ -49,18 +48,6 @@ namespace ZeldaTimelineGeneratorUtility
             {
                 rating = value;
                 NotifyPropertyChanged("Rating");
-            }
-        }
-        public string Category
-        {
-            get
-            {
-                return category;
-            }
-            set
-            {
-                category = value;
-                NotifyPropertyChanged("category");
             }
         }
 
@@ -103,12 +90,43 @@ namespace ZeldaTimelineGeneratorUtility
             }
         }
 
+        string IDataErrorInfo.Error
+        {
+            get { return null; }
+        }
+
+        string IDataErrorInfo.this[string columnName]
+        {
+            get
+            {
+                if (columnName == "Description")
+                {
+                    // Validate property and return a string if there is an error
+                    if (string.IsNullOrEmpty(Description) || Description.Equals("<Description>"))
+                        return "A description is required";
+                }
+                else if (columnName == "Rating")
+                {
+                    if (Rating < 0 || Rating > 10)
+                        return "Rating must be between 1-10";
+                }
+                else if (columnName == "TargetGame")
+                {
+                    if(TargetGame == null || TargetGame.Equals(GameEnum.NoData))
+                    {
+                        return "A target game must be selected";
+                    }
+                }
+                // If there's no error, null gets returned
+                return null;
+            }
+        }
+
         public DirectConnection()
         {
             GameId = 0;
             Description = "<Description>";
             Rating = 0;
-            Category = "<Category>";
         }
 
         public DirectConnection(int gameId)
@@ -116,7 +134,6 @@ namespace ZeldaTimelineGeneratorUtility
             GameId = gameId;
             Description = "<Description>";
             Rating = 0;
-            Category = "<Category>";
         }
 
         public DirectConnection(int gameId, GameEnum sourceGame)
@@ -124,7 +141,6 @@ namespace ZeldaTimelineGeneratorUtility
             GameId = gameId;
             Description = "<Description>";
             Rating = 0;
-            Category = "<Category>";
             SourceGame = sourceGame;
         }
 

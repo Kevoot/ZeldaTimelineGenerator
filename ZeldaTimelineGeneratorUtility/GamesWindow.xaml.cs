@@ -35,11 +35,11 @@ namespace ZeldaTimelineGeneratorUtility
             try
             {
                 GameObservableCollection = 
-                    JsonConvert.DeserializeObject<ObservableCollection<Game>>(File.ReadAllText(Environment.CurrentDirectory + "\\LocalData.txt"));
+                    JsonConvert.DeserializeObject<ObservableCollection<Game>>(File.ReadAllText(Environment.CurrentDirectory + "\\LocalData.json"));
             }
             catch(JsonReaderException)
             {
-                MessageBox.Show("Could not read LocalData.txt");
+                MessageBox.Show("Could not read LocalData.json");
                 GameObservableCollection = new ObservableCollection<Game>();
             }
             catch (Exception e)
@@ -69,7 +69,14 @@ namespace ZeldaTimelineGeneratorUtility
 
         private void generate_button_Click(object sender, RoutedEventArgs e)
         {
-            var tree = new ZeldaTree(GameObservableCollection);
+            try
+            {
+                var tree = new ZeldaTree(GameObservableCollection);
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show("Generation failed, exception details: " + ex.Message);
+            }
         }
 
         private void dataGrid_BeginningEdit(object sender, DataGridBeginningEditEventArgs e)
@@ -93,6 +100,8 @@ namespace ZeldaTimelineGeneratorUtility
             {
                 var directConnectionsWindow = new ConnectionsWindow(((Game)selectedGame));
                 directConnectionsWindow.ShowDialog();
+                dataGrid.ItemsSource = GameObservableCollection;
+                dataGrid.Items.Refresh();
             }
         }
 

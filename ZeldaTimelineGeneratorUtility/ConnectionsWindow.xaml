@@ -5,31 +5,105 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ZeldaTimelineGeneratorUtility"
         mc:Ignorable="d"
-        Title="Direct Connections Window" Height="442.488" Width="683.036">
+        xmlns:commands="ZeldaTimelineGeneratorUtility"
+        Title="Direct Connections Window" Height="474.769" Width="683.036" ResizeMode="NoResize">
+    <Window.Resources>
+        <Style TargetType="{x:Type FrameworkElement}" x:Key="ValidatingControl">
+            <Style.Triggers>
+                <Trigger Property="Validation.HasError" Value="True">
+                    <Setter Property="ToolTip" Value="{Binding 
+                Path=(Validation.Errors)[0].ErrorContent, 
+                RelativeSource={x:Static RelativeSource.Self}}" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
     <Grid DataContext="{Binding SelectedGame, Mode=TwoWay}">
-        <DataGrid Name="dataGrid" AutoGenerateColumns="False" SelectionMode="Single" CanUserDeleteRows="True" SelectionUnit="FullRow" ItemsSource="{Binding SelectedGame, UpdateSourceTrigger=PropertyChanged}"
-                   HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Height="388" RenderTransformOrigin="0.5,0.5" Width="658" AddingNewItem="dataGrid_AddingNewItem">
+        <DataGrid Name="dataGrid" 
+                  AutoGenerateColumns="False" 
+                  SelectionMode="Single" 
+                  ItemsSource="{Binding SelectedGame, UpdateSourceTrigger=PropertyChanged}"
+                  HorizontalAlignment="Left" 
+                  Margin="10,10,0,0"
+                  VerticalAlignment="Top" 
+                  Height="388" 
+                  RenderTransformOrigin="0.5,0.5"
+                  AddingNewItem="dataGrid_AddingNewItem" 
+                  Width="657"
+                  CanUserAddRows="False" >
             <DataGrid.CellStyle>
                 <Style TargetType="DataGridCell">
                     <Setter Property="BorderThickness" Value="0"/>
                 </Style>
             </DataGrid.CellStyle>
+            
 
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Description" IsReadOnly="False" Width="160" Binding="{Binding Description, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                <DataGridTemplateColumn Header="Rating ()">
+                <DataGridTemplateColumn x:Name="Description" Header="Description">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <TextBox Text="{Binding Rating, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"  IsReadOnly="False" Width="100"/>
+                            <TextBox Text="{Binding Description, 
+                                            Mode=TwoWay, 
+                                            UpdateSourceTrigger=PropertyChanged, 
+                                            ValidatesOnDataErrors=True, 
+                                            NotifyOnValidationError=True, 
+                                            ValidatesOnExceptions=True}"  
+                                            IsReadOnly="False" 
+                                            MinLines="1"
+                                            Name="Description"
+                                            Validation.Error="Validation_Error"/>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridComboBoxColumn Header="SourceGame" IsReadOnly="True" Width="100" ItemsSource="{Binding Source={local:EnumBindingSource {x:Type local:GameEnum}}}" SelectedItemBinding="{Binding SourceGame, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                <DataGridComboBoxColumn Header="TargetGame" IsReadOnly="False" Width="100" ItemsSource="{Binding Source={local:EnumBindingSource {x:Type local:GameEnum}}}" SelectedItemBinding="{Binding TargetGame, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                <DataGridTextColumn Header="Comments" IsReadOnly="False" Width="160" Binding="{Binding Comment, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                <DataGridTemplateColumn Header="Rating (1-10)">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBox Text="{Binding Rating, 
+                                            Mode=TwoWay, 
+                                            UpdateSourceTrigger=PropertyChanged, 
+                                            ValidatesOnDataErrors=True, 
+                                            NotifyOnValidationError=True, 
+                                            ValidatesOnExceptions=True}"  
+                                            IsReadOnly="False"
+                                            Name="Rating" 
+                                            Validation.Error="Validation_Error"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Target Game">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <ComboBox IsReadOnly="False" 
+                                        ItemsSource="{Binding Source={local:EnumBindingSource {x:Type local:GameEnum}}}" 
+                                        SelectedItem="{Binding TargetGame, 
+                                                        Mode=TwoWay, 
+                                                        UpdateSourceTrigger=PropertyChanged, 
+                                                        ValidatesOnDataErrors=True, 
+                                                        NotifyOnValidationError=True, 
+                                                        ValidatesOnExceptions=True}"
+                                                        Name="TargetGame"
+                                                        Validation.Error="Validation_Error"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn x:Name="Comments" Header="Comments">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBox Text="{Binding Comment, 
+                                            Mode=TwoWay, 
+                                            UpdateSourceTrigger=PropertyChanged}"  
+                                            IsReadOnly="False" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
             </DataGrid.Columns>
         </DataGrid>
+        <Button x:Name="saveButton" Content="Save" HorizontalAlignment="Left" Margin="592,403,0,0" VerticalAlignment="Top" Width="75" Click="saveButton_Click" />
+        <Button x:Name="revertButton" Content="Cancel" HorizontalAlignment="Left" Margin="512,403,0,0" VerticalAlignment="Top" Width="75" Click="revertButton_Click" />
+        <Button x:Name="addNewRowButton" Content="Add New Row" HorizontalAlignment="Left" Margin="10,403,0,0" VerticalAlignment="Top" Width="94" Click="addNewRowButton_Click" />
+        <Button x:Name="deleteRowButton" Content="Delete Row" HorizontalAlignment="Left" Margin="109,403,0,0" VerticalAlignment="Top" Width="94" Click="deleteRowButton_Click" />
 
     </Grid>
 </Window>
+    
     

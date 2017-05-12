@@ -78,6 +78,33 @@ namespace ZeldaTimelineGeneratorUtility
             DirectConnections = new ObservableCollection<DirectConnection>();
         }
 
+        // Copy constructor
+        public Game(Game game)
+        {
+            GameTitle = game.GameTitle;
+            GameId = game.GameId;
+            foreach (var con in game.DirectConnections.ToList())
+            {
+                game.DirectConnections.Add(con);
+            }
+            foreach (var exc in game.Exclusions.ToList())
+            {
+                game.Exclusions.Add(exc);
+            }
+        }
+
+        public Game(ZeldaTreeNode node)
+        {
+            gameId = node.SourceGame.GameId;
+            GameTitle = node.SourceGame.GameTitle;
+            Exclusions = node.SourceGame.Exclusions;
+            DirectConnections = node.SourceGame.DirectConnections;
+            foreach(var child in node.Children)
+            {
+                // Have to figure out the added graph data
+            }
+        }
+
         public Game(GameEnum title)
         {
             GameId = 0;
